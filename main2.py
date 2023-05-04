@@ -10,6 +10,8 @@ NUM_LINHAS = 5
 TAMANHO_COLUNA = 15
 TAMANHO_CELULA = 15 * mm
 
+imagens_rodadas = [f"imagens/rodada_{i}.png" for i in range(1, 10)]
+
 def criar_cartela_bingo():
     cartela_bingo = []
     for i in range(NUM_COLUNAS):
@@ -23,7 +25,7 @@ def criar_cartela_bingo():
 def desenhar_cartela_bingo(c, x, y, cartela_bingo, rodada):
     tamanho_celula = 15 * mm
     bingo = "BINGO"
-    free_image = "free_image.png"
+    imagens_rodadas = [f"imagens/rodada_{i}.png" for i in range(1, 11)]
 
     for i, letra in enumerate(bingo):
         c.setFont("Helvetica-Bold", 18)
@@ -32,7 +34,8 @@ def desenhar_cartela_bingo(c, x, y, cartela_bingo, rodada):
     for i, coluna in enumerate(cartela_bingo):
         for j, numero in enumerate(coluna):
             if i == 2 and j == 2:
-                c.drawImage(free_image, x + i * tamanho_celula, y + j * tamanho_celula, tamanho_celula, tamanho_celula)
+                imagem_rodada = imagens_rodadas[rodada - 1]
+                c.drawImage(imagem_rodada, x + i * tamanho_celula, y + j * tamanho_celula, tamanho_celula, tamanho_celula)
             else:
                 c.rect(x + i * tamanho_celula, y + j * tamanho_celula, tamanho_celula, tamanho_celula)
                 c.setFont("Helvetica", 18)
@@ -49,26 +52,28 @@ def desenhar_cabecalho(c, x, y, nome_evento, data, horario, num_cartela):
     c.setFont("Helvetica-Bold", 12)
     c.drawCentredString(x, y - 12 * mm, f"Cartela: {num_cartela}")
 
-def main(num_paginas):
+def main(num_paginas, nome, hr):
+    num_paginas*2
     arquivo_saida = "cartelas_bingo.pdf"
     nome_evento = "Evento de Bingo"
     data = "01/01/2023"
     horario = "20:00"
     imagem_exemplo = "imagem_exemplo.jpg"
+    imagem_exemplo_2 = "imagem_exemplo2.jpg"
 
     c = canvas.Canvas(arquivo_saida, pagesize=A4)
     c.setStrokeColorRGB(0, 0, 0)
-
     espaco_entre_cartelas = 11.5 * mm
     espaco_abaixo_cabecalho = 22 * mm
 
     with tqdm(total=num_paginas) as pbar:
         for pagina in range(num_paginas):
+            imagem_atual = imagem_exemplo_2 if pagina % 2 == 0 else imagem_exemplo
+            
             x_cabecalho = 105 * mm
             y_cabecalho = 297 * mm - 10 * mm
             num_cartela = (pagina // 2) + 1
             desenhar_cabecalho(c, x_cabecalho, y_cabecalho, nome_evento, data, horario, num_cartela)
-
             for coluna in range(2):
                 x_cartela = 25 * mm if coluna == 0 else 110 * mm
                 for indice_cartela in range(3 if coluna == 0 else 2):
@@ -82,22 +87,24 @@ def main(num_paginas):
                         pbar.update(1)
 
                         if (pagina * 5 + coluna * 3 + indice_cartela) % 5 == 4:
-                            c.drawImage(imagem_exemplo, x_cartela + 0 * mm, y_cartela - 90 * mm, 75 * mm, 75 * mm)
+                            c.drawImage(imagem_atual, x_cartela + 0 * mm, y_cartela - 90 * mm, 75 * mm, 75 * mm)
                     except Exception as e:
                         print(f"Erro ao gerar cartela: {str(e)}")
             pbar.update(1)
             c.showPage()
-
     c.save()
-
+#Lembrete: adicionar no meu a opção de alterar o 'nome_evento', 'horario' e 'num_paginas'
 def main_menu():
     while True:
         try:
             opcao = int(input("Selecione uma opção:\n---------------------------\n1. Gerar cartelas de bingo\n2. Sair\n---------------------------\nOpção:"))
             if opcao == 1:
+                nome = int(input("Digite o nome do evento: "))
+                main(nome)
+                hr = int(input("Digite o horário do evento: "))
+                main(hr)
                 num_paginas = int(input("Digite o número de páginas de cartelas a serem geradas: "))
                 main(num_paginas)
-                print("---------------------------\n100% [/////////////////] Cartelas geradas com sucesso!\n---------------------------")
             elif opcao == 2:
                 print("---------------------------\n-> Saindo...\n---------------------------")
                 break
